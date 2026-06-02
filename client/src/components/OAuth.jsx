@@ -63,7 +63,7 @@ export default function OAuth({ successRedirect = '/' }) {
       }
 
       dispatch(signInSuccess(data));
-      navigate(successRedirect, { replace: true });
+      navigate(successRedirect,{ replace: true });
     } catch (error) {
       console.log('could not sync google user', error);
     } finally {
