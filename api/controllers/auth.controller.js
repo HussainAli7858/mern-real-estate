@@ -38,31 +38,14 @@ try {
 
 export const google = async (req, res, next) => {
  try {
-  const { email, name, photo, avatar_url, picture, providerToken, user_metadata } = req.body;
+  const { email, name, photo, avatar_url, picture, user_metadata } = req.body;
 
   if (!email) {
     return next(errorHandler(400, "Email is required"));
   }
 
-  let googleAvatar = photo || avatar_url || picture || user_metadata?.avatar_url || user_metadata?.picture || user_metadata?.picture_url;
+  const googleAvatar = photo || avatar_url || picture || user_metadata?.avatar_url || user_metadata?.picture || "";
   const displayName = name || user_metadata?.full_name || user_metadata?.name || user_metadata?.display_name || email.split("@")[0];
-
-  if (!googleAvatar && providerToken) {
-    try {
-      const googleResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: {
-          Authorization: `Bearer ${providerToken}`,
-        },
-      });
-
-      if (googleResponse.ok) {
-        const googleUserInfo = await googleResponse.json();
-        googleAvatar = googleUserInfo.picture || googleUserInfo.avatar_url || "";
-      }
-    } catch (fetchError) {
-      console.log("could not load google avatar", fetchError);
-    }
-  }
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -83,7 +66,7 @@ export const google = async (req, res, next) => {
     username: `${usernameBase}${Math.random().toString(36).slice(-4)}`,
     email,
     password: hashedPassword,
-    ...(googleAvatar ? { avatar: googleAvatar } : {}),
+    avatar: googleAvatar,
   });
   await newUser.save();
   const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
