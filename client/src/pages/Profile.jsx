@@ -1,7 +1,7 @@
 import {useSelector} from 'react-redux'
 import { useRef, useState, useEffect } from 'react';
 import { supabase } from '../supabase/supabase';
-import { updateUserStart, updateUserSuccess, updateUserFailure, signInFailure, deleteUserFailure, deleteUserStart, deleteUserSuccess } from '../redux/user/userSlice';
+import { updateUserStart, updateUserSuccess, updateUserFailure, signInFailure, deleteUserFailure, deleteUserStart, deleteUserSuccess, signOutUserStart, signOutUserFailure, signOutUserSuccess } from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 
 export default function Profile() {
@@ -102,6 +102,21 @@ export default function Profile() {
     } catch (error) {
      dispatch(deleteUserFailure(error.message)); 
     }
+  };
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch("/api/auth/signout")
+      const data = await res.json();
+      if(data.success === false){
+        dispatch(signOutUserFailure(data.message));
+        return;
+      }
+      await supabase.auth.signOut();
+      dispatch(signOutUserSuccess());
+    } catch (error) {
+      dispatch(signOutUserFailure(error.message));
+    }
   }
 
   return (
@@ -125,7 +140,7 @@ export default function Profile() {
         </form> 
         <div className='flex justify-between mt-5 '>
          <span onClick={handleDeleteUser} className='text-red-700 cursor-pointer '>Delete account</span>
-         <span className='text-red-700 cursor-pointer '>Sign out</span>
+         <span onClick={handleSignOut} className='text-red-700 cursor-pointer '>Sign out</span>
         </div>
         <p className='text-red-500 mt-5'>{error ? error : ""}</p>
         <p className='text-green-500 mt-5'>{updateSuccess ? 'User updated successfully!' : ''}</p>
