@@ -1,7 +1,7 @@
 import {useSelector} from 'react-redux'
 import { useRef, useState, useEffect } from 'react';
 import { supabase } from '../supabase/supabase';
-import { updateUserStart, updateUserSuccess, updateUserFailure, signInFailure } from '../redux/user/userSlice';
+import { updateUserStart, updateUserSuccess, updateUserFailure, signInFailure, deleteUserFailure, deleteUserStart, deleteUserSuccess } from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 
 export default function Profile() {
@@ -86,6 +86,24 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    try {
+     dispatch(deleteUserStart()); 
+     const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+      method: "DELETE",
+     });
+     const data = await res.json();
+     if(data.success === false){
+      dispatch(deleteUserFailure(data.message));
+      return;
+     }
+     await supabase.auth.signOut();
+     dispatch(deleteUserSuccess());
+    } catch (error) {
+     dispatch(deleteUserFailure(error.message)); 
+    }
+  }
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7 '>Profile</h1>
@@ -106,7 +124,7 @@ export default function Profile() {
         <button disabled={loading} className='bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-50'>{loading ? 'Updating...' : 'Update'}</button>
         </form> 
         <div className='flex justify-between mt-5 '>
-         <span className='text-red-700 cursor-pointer '>Delete account</span>
+         <span onClick={handleDeleteUser} className='text-red-700 cursor-pointer '>Delete account</span>
          <span className='text-red-700 cursor-pointer '>Sign out</span>
         </div>
         <p className='text-red-500 mt-5'>{error ? error : ""}</p>
