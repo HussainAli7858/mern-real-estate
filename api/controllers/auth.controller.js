@@ -38,14 +38,34 @@ try {
 
 export const google = async (req, res, next) => {
  try {
-  const { email, name, photo, avatar_url, picture, user_metadata } = req.body;
+  const { email, name, photo, avatar_url, picture, providerToken, user_metadata } = req.body;
 
   if (!email) {
     return next(errorHandler(400, "Email is required"));
   }
 
-  const googleAvatar = photo || avatar_url || picture || user_metadata?.avatar_url || user_metadata?.picture || "";
+  let googleAvatar = [photo, avatar_url, picture, user_metadata?.avatar_url, user_metadata?.picture]
+    .find((value) => typeof value === 'string' && value.trim() !== '') || '';
   const displayName = name || user_metadata?.full_name || user_metadata?.name || user_metadata?.display_name || email.split("@")[0];
+
+  if (!googleAvatar && providerToken) {
+    try {
+      const googleResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: {
+          Authorization: `Bearer ${providerToken}`,
+        },
+      });
+
+      if (googleResponse.ok) {
+        const googleUserInfo = await googleResponse.json();
+        if (googleUserInfo?.picture && googleUserInfo.picture.trim() !== '') {
+          googleAvatar = googleUserInfo.picture;
+        }
+      }
+    } catch (fetchError) {
+      console.log("could not load google avatar", fetchError);
+    }
+  }
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -66,7 +86,7 @@ export const google = async (req, res, next) => {
     username: `${usernameBase}${Math.random().toString(36).slice(-4)}`,
     email,
     password: hashedPassword,
-    avatar: googleAvatar,
+    ...(googleAvatar ? { avatar: googleAvatar } : {}),
   });
   await newUser.save();
   const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
@@ -75,4 +95,12 @@ export const google = async (req, res, next) => {
  } catch (error) {
   next(error);
  }
+}
+
+export const signOut = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token").status(200).json("User signed out successfully");
+  } catch (error) {
+    next(error);
+  }
 }

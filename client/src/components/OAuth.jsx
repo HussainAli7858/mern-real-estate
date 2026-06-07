@@ -30,7 +30,6 @@ export default function OAuth({ successRedirect = '/' }) {
       return;
     }
 
-    processedUserIdRef.current = supabaseUser.id;
     setLoading(true);
 
     try {
@@ -49,8 +48,7 @@ export default function OAuth({ successRedirect = '/' }) {
         body: JSON.stringify({
           name: displayName,
           email: supabaseUser.email,
-          photo,
-          avatar: photo,
+          ...(photo ? { photo, avatar: photo } : {}),
           providerToken,
           user_metadata: supabaseUser.user_metadata,
         }),
@@ -63,6 +61,7 @@ export default function OAuth({ successRedirect = '/' }) {
       }
 
       dispatch(signInSuccess(data));
+      processedUserIdRef.current = supabaseUser.id;
       navigate(successRedirect,{ replace: true });
     } catch (error) {
       console.log('could not sync google user', error);
