@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Listing from "../models/listing.model.js";
 import { errorHandler } from "../utils/error.js";
 
@@ -11,9 +12,13 @@ export const createListing = async (req, res, next) => {
 }
 
 export const deleteListing = async (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return next(errorHandler(404, "Listing not found"));
+  }
+
   const listing = await Listing.findById(req.params.id);
   if (!listing) {
-    return res.status(404).json({ success: false, message: "Listing not found" });
+    return next(errorHandler(404,"Listing not found"));
   }
   if(req.user.id !== listing.userRef){
     return next(errorHandler(401,"you can only delete your own listings"))
@@ -23,5 +28,27 @@ export const deleteListing = async (req, res, next) => {
     return res.status(200).json({ success: true, message: "Listing deleted successfully" });
   } catch (error) {
     next(error)
+  }
+}
+
+export const updateListing = async (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return next(errorHandler(404, "Listing not found"));
+  }
+
+  const listing = await Listing.findById(req.params.id);
+  if (!listing) {
+    return next(errorHandler(404,"Listing not found"));
+  }
+  if(req.user.id !== listing.userRef){
+    return next(errorHandler(401,"you can only update your own listings"))
+  }
+  try {
+    const updatedListing = await Listing.findByIdAndUpdate(req.params.id, req.body, {
+      returnDocument: 'after',
+    });
+    return res.status(200).json(updatedListing);
+  } catch (error) {
+    next(error);
   }
 }
