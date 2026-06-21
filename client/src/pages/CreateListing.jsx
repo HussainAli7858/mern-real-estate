@@ -92,7 +92,7 @@ export default function CreateListing() {
 
     const handleChange = (e) => {
 
-      if(e.target.id === "sell" || e.target.id === "rent"){
+      if(e.target.id === "sale" || e.target.id === "rent"){
         setFormData({
           ...formData,
           type: e.target.id,
@@ -161,12 +161,12 @@ export default function CreateListing() {
             <textarea type="text" placeholder='Description' className='whitespace-pre-wrap border border-slate-300 p-3 rounded-lg' id='description' required onChange={handleChange} value={formData.description} />
             <input type="text" placeholder='Address' className='border border-slate-300 p-3 rounded-lg' id='address' required onChange={handleChange} value={formData.address} />
             <div className='flex gap-6 flex-wrap'>
-              <div className='flex gap-2 '>
-                <input type="checkbox" id="sell" className='w-5' onChange={handleChange} checked={formData.type === "sell"} />
-                <span>Sell</span>
+              <div className='flex gap-2 items-center'>
+                <input type="radio" name="type" id="sale" className='w-5' onChange={handleChange} checked={formData.type === "sale"} />
+                <span>Sale</span>
               </div>
-              <div className='flex gap-2 '>
-                <input type="checkbox" id="rent" className='w-5' onChange={handleChange} checked={formData.type === "rent"} />
+              <div className='flex gap-2 items-center'>
+                <input type="radio" name="type" id="rent" className='w-5' onChange={handleChange} checked={formData.type === "rent"} />
                 <span>Rent</span>
               </div>
               <div className='flex gap-2 '>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import ListingItem from '../components/ListingItem';
 export default function Search() {
     const navigate = useNavigate();
     const [sidebardata, setSidebardata] = useState({
@@ -13,7 +14,7 @@ export default function Search() {
     });
     const [loading, setLoading] = useState(false);
     const [listings, setListings] = useState([]);
-    console.log(listings);
+    
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
         const searchTermFromUrl = urlParams.get('searchTerm');
@@ -158,8 +159,19 @@ export default function Search() {
             <button className='bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-90'>Search</button>
           </form>
        </div>
-       <div className=''>
-          <h1 className='text-3xl font-semibold border-b border-slate-300 p-3 text-slate-700 mt-5 ml-5'>Listing Results</h1>
+       <div className='flex-1'>
+          <h1 className='text-3xl font-semibold border-b border-slate-300 p-3 text-slate-700 mt-5 ml-5'>Listing Results:</h1>
+          <div className='p-7 flex flex-wrap gap-4'>
+            {!loading && listings.length === 0 && (
+                <p className='text-xl text-center text-slate-700'>No listings found matching your criteria.</p>
+            )}
+            {loading && (
+                <p className='text-xl text-center text-slate-700 w-full'>Loading...</p>
+            )}
+            {!loading && listings && listings.map((listing) => (
+               <ListingItem key={listing._id} listing={listing} />
+            ))}
+          </div>
        </div>
     </div>
   )
