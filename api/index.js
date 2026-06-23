@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import userRouter from './routes/user.route.js'// Import userRouter from the user.route.js file but i export the routerin the file but in the index.js file i am importing it as userRouter, i can change the name of import because it is a default export,in case of default export we can import it with any name we want, but in case of named export we have to import it with the same name as it is exported. 
+import path from 'path'
 
 import authRouter from './routes/auth.route.js'
 dotenv.config()
@@ -15,6 +16,8 @@ mongoose.connect(process.env.MONGO).then(() => {
   console.error("Error connecting to MongoDB:", err)
 })
 
+const __dirname = path.resolve();
+
 const PORT = 3000;
 const app = express()
 // Middleware to parse JSON bodies
@@ -24,6 +27,12 @@ app.use(cookieParser())
 app.use("/api/user", userRouter)
 app.use("/api/auth", authRouter)
 app.use("/api/listing", listingRouter)
+
+app.use(express.static(path.join(__dirname, 'client/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
 
 app.use((err,req,res,next) => {
   const statusCode = err.statusCode || 500;
